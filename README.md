@@ -15,13 +15,13 @@ iOS and MacOS version of whisper4dart will be available in the near future. Howe
 ## Getting Started
 
 ```
-   flutter pub add whisper4dart
+flutter pub add whisper4dart
 ```
 
 or add following line to your `pubspec.yaml`:
 
 ```
-    whisper4dart:^0.1.3
+    whisper4dart:^0.1.4
 ```
 
 After that,run following command in your terminal:
@@ -133,7 +133,11 @@ Just use `.inferIsolate()` to replace `.infer()` .
 
 Just use `.inferStream()` to replace `.infer()` .
 
-It returns a `ValueNotifier<String>` and you can use the returned notifier to build widgets.
+This method returns a tuple `(ValueNotifier<String>, ValueNotifier<int>)`.(known as a **record** in Dart) You can use these returned notifiers to build your widgets.
+
+The first notifier `(ValueNotifier<String>)` provides the output strings, while the second `(ValueNotifier<int>)` tracks the progress.
+
+(e.g., if the transcription is 50% complete, the value of the progress notifier will be 50.)
 
 > [!CAUTION]
 > In this mode,json output is not supported and you have to set numProcessors to 1.
