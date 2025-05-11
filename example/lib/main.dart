@@ -29,7 +29,7 @@ Future<String> inference(String inputPath) async {
       logPath: logPath, numProcessors: 1, startTime: 3000);
 }
 
-Future<ValueNotifier<String>> inferenceStream(String inputPath) async {
+Future<(ValueNotifier<String>,ValueNotifier<int>)> inferenceStream(String inputPath) async {
   final Directory tempDirectory = await getTemporaryDirectory();
 // final ByteData documentBytes = await rootBundle.load(inputPath);
 
@@ -55,6 +55,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ValueNotifier<String> _textNotifier = ValueNotifier<String>('');
+  ValueNotifier<int> _progressNotifier = ValueNotifier<int>(0);
   @override
   void initState() {
     super.initState();
@@ -88,9 +89,10 @@ class _MyAppState extends State<MyApp> {
                     child: const Text("Do inference at once")),
                 ElevatedButton(
                   onPressed: () async {
-                    var newNotifier = await inferenceStream("assets/test.mp4");
+                    var (resultNotifier,progressMotifier) = await inferenceStream("assets/test.mp4");
                     setState(() {
-                      _textNotifier = newNotifier;
+                      _textNotifier = resultNotifier;
+                      _progressNotifier = progressMotifier;
                     });
 
                     // print(await inference("assets/test4.mp4"));
@@ -98,6 +100,12 @@ class _MyAppState extends State<MyApp> {
                   child: const Text("Do inference progressively"),
                 ),
                 spacerSmall,
+                 ValueListenableBuilder<int>(
+              valueListenable: _progressNotifier,
+              builder: (context, value, child) {
+                return Text("progress: $value");
+              },
+            ),
                 ValueListenableBuilder<String>(
                   valueListenable: _textNotifier,
                   builder: (context, value, child) {

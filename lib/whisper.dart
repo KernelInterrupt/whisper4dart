@@ -44,6 +44,7 @@ class Whisper {
   int get handle => ctx.address;
   @JsonKey(includeFromJson: false, includeToJson: false)
   ValueNotifier<String> result = ValueNotifier("");
+  ValueNotifier<int> progress = ValueNotifier(0);
   int nNew = 0;
   String outputMode;
   int lastNSegments = 0;
@@ -261,7 +262,7 @@ class Whisper {
     );
   }
 
-  ValueNotifier<String> inferStream(String inputPath,
+  (ValueNotifier<String>,ValueNotifier<int>) inferStream(String inputPath,
       {String? logPath,
       int numProcessors = 1,
       String language = "auto",
@@ -287,9 +288,10 @@ class Whisper {
       endTime: endTime,
       useOriginalTime: useOriginalTime,
       newSegmentCallback: getSegmentCallback,
+      progressCallback: getProgressCallback
     );
 
-    return result;
+    return (result,progress);
   }
 
   Future<String> inferIsolate(String inputPath,
@@ -305,7 +307,11 @@ class Whisper {
       void Function(Pointer<whisper_context>, Pointer<whisper_state>, int,
               Pointer<Void>)?
           newSegmentCallback,
-      Pointer<Void>? newSegmentCallbackUserData}) async {
+      Pointer<Void>? newSegmentCallbackUserData,
+      void Function(Pointer<whisper_context>, Pointer<whisper_state>, int,
+              Pointer<Void>)?
+          progressCallback,
+      Pointer<Void>? progressCallbackUserData}) async {
     logPath ??= path.join((await getTemporaryDirectory()).path, "log.txt");
     var wparams = createFullDefaultParams(strategy);
     wparams.language = language.toNativeUtf8().cast<Char>();
@@ -318,6 +324,15 @@ class Whisper {
     }
     if (newSegmentCallbackUserData != null) {
       wparams.new_segment_callback_user_data = newSegmentCallbackUserData;
+    }
+    if(progressCallback != null){
+      wparams.progress_callback = NativeCallable<
+              Void Function(Pointer<whisper_context>, Pointer<whisper_state>,
+                  Int, Pointer<Void>)>.listener(progressCallback)
+          .nativeFunction;
+    }
+    if(progressCallbackUserData != null){
+      wparams.progress_callback_user_data = progressCallbackUserData;
     }
     if (initialPrompt != "") {
       wparams.initial_prompt = initialPrompt.toNativeUtf8().cast<Char>();
@@ -491,7 +506,15 @@ class Whisper {
       lastNSegments = nSegments;
     }
   }
+
+  void getProgressCallback(Pointer<whisper_context> ctx,
+    Pointer<whisper_state> state, int progress, Pointer<Void> userData) {
+ 
+  this.progress.value = progress;
 }
+}
+
+
 
 void cvt2PCM(String inputPath, String outputPath, {String? logPath}) {
   Map<String, String> option;
@@ -600,14 +623,7 @@ Pointer<Uint8> allocateUint8Pointer(List<int> list) {
   return memory;
 }
 
-final class WhisperTimeData4Callback extends Struct {
-  @Int()
-  external int startTime;
-  @Int()
-  external int endTime;
-  @Int()
-  external int useOriginalTime;
-}
+
 // void newSegmentCallback(Pointer<whisper_context> ctx, Pointer<whisper_state> state,int nNew,Pointer<Void> userData){
 //   var whisperModel=Whisper.useCtx(ctx);
 //   var nSegments=whisperModel.fullNSegments();

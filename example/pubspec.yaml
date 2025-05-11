@@ -59,9 +59,8 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/jfk.wav
     - assets/ggml-base.en.bin
-    - assets/test.mp4
+    - assets/test.m4a
     
     #- assets/ggml-medium-q5_0.bin
     #- assets/ggml-base.bin
