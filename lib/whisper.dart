@@ -44,6 +44,7 @@ class Whisper {
   int get handle => ctx.address;
   @JsonKey(includeFromJson: false, includeToJson: false)
   ValueNotifier<String> result = ValueNotifier("");
+  @JsonKey(includeFromJson: false, includeToJson: false)
   ValueNotifier<int> progress = ValueNotifier(0);
   int nNew = 0;
   String outputMode;
@@ -96,7 +97,7 @@ class Whisper {
   Whisper(this.model, this.cparams,
       {this.outputMode = "plaintext",
       this.initMode = "late",
-      ValueNotifier<String>? externalNotifier}) {
+      ValueNotifier<String>? externalResultNotifier,ValueNotifier<int>? externalProgressNotifier}) {
     if (!WhisperLibrary.loaded) {
       if (!WhisperLibrary.flagFirst) {
         WhisperLibrary.init();
@@ -104,8 +105,11 @@ class Whisper {
         throw Exception('libwhisper is not loaded!');
       }
     }
-    if (externalNotifier != null) {
-      result = externalNotifier;
+    if (externalResultNotifier != null) {
+      result = externalResultNotifier;
+    }
+    if (externalProgressNotifier != null) {
+      progress = externalProgressNotifier;
     }
     if (initMode == "normal") {
       initModel();
