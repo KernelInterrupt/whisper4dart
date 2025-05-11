@@ -84,12 +84,12 @@ class _MyAppState extends State<MyApp> {
                 spacerSmall,
                 ElevatedButton(
                     onPressed: () async {
-                      print(await inference("assets/test.mp4"));
+                      print(await inference("assets/test.m4a"));
                     },
                     child: const Text("Do inference at once")),
                 ElevatedButton(
                   onPressed: () async {
-                    var (resultNotifier,progressMotifier) = await inferenceStream("assets/test.mp4");
+                    var (resultNotifier,progressMotifier) = await inferenceStream("assets/test.m4a");
                     setState(() {
                       _textNotifier = resultNotifier;
                       _progressNotifier = progressMotifier;
