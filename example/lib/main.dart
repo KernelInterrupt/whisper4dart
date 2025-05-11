@@ -103,7 +103,7 @@ class _MyAppState extends State<MyApp> {
                  ValueListenableBuilder<int>(
               valueListenable: _progressNotifier,
               builder: (context, value, child) {
-                return Text("progress: $value");
+                return Text("progress: $value %");
               },
             ),
                 ValueListenableBuilder<String>(
