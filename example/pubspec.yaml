@@ -30,7 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  path_provider: ^2.1.4
+  path: ^1.9.0
   whisper4dart:
     # When depending on this package from a real application you should use:
     #   whisper4dart: ^x.y.z

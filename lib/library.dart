@@ -7,7 +7,7 @@ import 'whisper4dart_bindings_generated.dart';
 
 class WhisperLibrary {
   static late WhisperDartBindings binding;
-  static String _libName = 'whisper';
+  static const String _libName = 'whisper';
   static bool flagFirst = false;
   static bool loaded = false;
   static void init() {
