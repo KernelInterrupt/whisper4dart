@@ -1,32 +1,33 @@
 import 'dart:io';
-import 'package:http/http.dart' as http;
+
 import 'package:archive/archive.dart';
+import 'package:http/http.dart' as http;
 import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
-import 'package:collection/collection.dart';
 
 Future<void> setupSrc() async {
-var url = Uri.parse('https://github.com/ggerganov/whisper.cpp/archive/refs/heads/master.zip');
+  var url = Uri.parse(
+      'https://github.com/ggerganov/whisper.cpp/archive/refs/heads/master.zip');
   var filename = 'whisper-cpp.zip';
- var packageConfig = await findPackageConfig(Directory.current);
+  var packageConfig = await findPackageConfig(Directory.current);
   if (packageConfig == null) {
     print("Package config not found.");
     return;
   }
   // 查找特定插件的包信息
-  var pluginPackage = packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
+  var pluginPackage =
+      packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
   // 使用这个信息得到插件根目录
-  var pluginRootPath = pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
-  String filePath=path.join(pluginRootPath,"..","config.txt");
+  var pluginRootPath =
+      pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
+  String filePath = path.join(pluginRootPath, "..", "config.txt");
 
   File file = File(filePath);
-
 
   try {
     if (await file.exists()) {
       // 如果文件存在，先删除文件
       await file.delete();
-      
     }
     // 使用 writeAsString 方法将内容写入文件
     // 如果文件不存在，writeAsString 会自动创建文件
@@ -54,35 +55,35 @@ var url = Uri.parse('https://github.com/ggerganov/whisper.cpp/archive/refs/heads
 
     // 从压缩包中提取文件
     // 从压缩包中提取文件
-for (var file in archive) {
-  var fileName = file.name;
+    for (var file in archive) {
+      var fileName = file.name;
 
-  // 如果是根目录下的文件夹，则跳过不解压缩
-  if (file.isFile || path.split(fileName).length != 1) {
-    var data = file.content as List<int>;
+      // 如果是根目录下的文件夹，则跳过不解压缩
+      if (file.isFile || path.split(fileName).length != 1) {
+        var data = file.content as List<int>;
 
-    // 去掉第一级目录
-    List<String> pathSegments = path.split(fileName);
-    if (pathSegments.isNotEmpty) {
-      // 去掉第一级目录
-      pathSegments.removeAt(0);
-      fileName = path.joinAll(pathSegments);
+        // 去掉第一级目录
+        List<String> pathSegments = path.split(fileName);
+        if (pathSegments.isNotEmpty) {
+          // 去掉第一级目录
+          pathSegments.removeAt(0);
+          fileName = path.joinAll(pathSegments);
+        }
+
+        var outputPath = path.join(newPath, fileName);
+
+        // 确保父目录存在
+        Directory(path.dirname(outputPath)).createSync(recursive: true);
+
+        if (file.isFile) {
+          File(outputPath).writeAsBytesSync(data);
+        } else {
+          // 如果项是文件夹，则创建文件夹
+          Directory(outputPath).createSync(recursive: true);
+        }
+        print('Extracted: $outputPath');
+      }
     }
-
-    var outputPath = path.join(newPath, fileName);
-
-    // 确保父目录存在
-    Directory(path.dirname(outputPath)).createSync(recursive: true);
-
-    if (file.isFile) {
-      File(outputPath)..writeAsBytesSync(data);
-    } else {
-      // 如果项是文件夹，则创建文件夹
-      Directory(outputPath).createSync(recursive: true);
-    }
-    print('Extracted: $outputPath');
-  }
-}
     print('Files extracted to $newFolder');
 
     // 删除下载的ZIP文件
@@ -93,20 +94,22 @@ for (var file in archive) {
   }
 }
 
-
 Future<void> setupPrebuilt() async {
-var url = Uri.parse('https://github.com/KernelInterrupt/whisper4dart_build/archive/refs/heads/main.zip');
+  var url = Uri.parse(
+      'https://github.com/KernelInterrupt/whisper4dart_build/archive/refs/heads/main.zip');
   var filename = 'whisper-prebuilt.zip';
- var packageConfig = await findPackageConfig(Directory.current);
+  var packageConfig = await findPackageConfig(Directory.current);
   if (packageConfig == null) {
     print("Package config not found.");
     return;
   }
   // 查找特定插件的包信息
-  var pluginPackage = packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
+  var pluginPackage =
+      packageConfig.packages.firstWhere((pkg) => pkg.name == 'whisper4dart');
   // 使用这个信息得到插件根目录
-  var pluginRootPath = pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
- String filePath=path.join(pluginRootPath,"..","config.txt");
+  var pluginRootPath =
+      pluginPackage.packageUriRoot.toFilePath(windows: Platform.isWindows);
+  String filePath = path.join(pluginRootPath, "..", "config.txt");
 
   File file = File(filePath);
 
@@ -114,7 +117,6 @@ var url = Uri.parse('https://github.com/KernelInterrupt/whisper4dart_build/archi
     if (await file.exists()) {
       // 如果文件存在，先删除文件
       await file.delete();
-      
     }
     // 使用 writeAsString 方法将内容写入文件
     // 如果文件不存在，writeAsString 会自动创建文件
@@ -142,51 +144,48 @@ var url = Uri.parse('https://github.com/KernelInterrupt/whisper4dart_build/archi
 
     // 从压缩包中提取文件
     // 从压缩包中提取文件
-for (var file in archive) {
-  var fileName = file.name;
+    for (var file in archive) {
+      var fileName = file.name;
 
-  // 如果是根目录下的文件夹，则跳过不解压缩
-  if (file.isFile || path.split(fileName).length != 1) {
-    var data = file.content as List<int>;
+      // 如果是根目录下的文件夹，则跳过不解压缩
+      if (file.isFile || path.split(fileName).length != 1) {
+        var data = file.content as List<int>;
 
-    // 去掉第一级目录
-    List<String> pathSegments = path.split(fileName);
-    if (pathSegments.isNotEmpty) {
-      // 去掉第一级目录
-      pathSegments.removeAt(0);
-      fileName = path.joinAll(pathSegments);
+        // 去掉第一级目录
+        List<String> pathSegments = path.split(fileName);
+        if (pathSegments.isNotEmpty) {
+          // 去掉第一级目录
+          pathSegments.removeAt(0);
+          fileName = path.joinAll(pathSegments);
+        }
+
+        var outputPath = path.join(newPath, fileName);
+
+        // 确保父目录存在
+        Directory(path.dirname(outputPath)).createSync(recursive: true);
+
+        if (file.isFile) {
+          File(outputPath).writeAsBytesSync(data);
+        } else {
+          // 如果项是文件夹，则创建文件夹
+          Directory(outputPath).createSync(recursive: true);
+        }
+        print('Extracted: $outputPath');
+      }
     }
-
-    var outputPath = path.join(newPath, fileName);
-
-    // 确保父目录存在
-    Directory(path.dirname(outputPath)).createSync(recursive: true);
-
-    if (file.isFile) {
-      File(outputPath)..writeAsBytesSync(data);
-    } else {
-      // 如果项是文件夹，则创建文件夹
-      Directory(outputPath).createSync(recursive: true);
-    }
-    print('Extracted: $outputPath');
-  }
-}
     print('Files extracted to $newFolder');
 
     // 删除下载的ZIP文件
     await file.delete();
     print('ZIP file deleted');
-    var iosPath=path.join(pluginRootPath,"..","ios");
-    var macosPath=path.join(pluginRootPath,"..","macos");
-  var frameworkPath=path.join(newPath,"apple");
-  copyFiles(frameworkPath, iosPath);
-  copyFiles(frameworkPath, macosPath);
-  
+    var iosPath = path.join(pluginRootPath, "..", "ios");
+    var macosPath = path.join(pluginRootPath, "..", "macos");
+    var frameworkPath = path.join(newPath, "apple");
+    copyFiles(frameworkPath, iosPath);
+    copyFiles(frameworkPath, macosPath);
   } else {
     print('Failed to download file: ${response.statusCode}');
   }
-
-
 }
 
 void copyFiles(String sourceDirPath, String targetDirPath) {
@@ -217,16 +216,14 @@ void copyFiles(String sourceDirPath, String targetDirPath) {
   }
 }
 
-
 void main(List<String> arguments) async {
   print('Setting up whisper4dart...');
   String command = arguments[0];
-  if(command=="--source"){
+  if (command == "--source") {
     setupSrc();
-    print('Attention: In current version of whisper4dart, even though you have set it to use source code compilation, the Android iOS and MacOS platform will still automatically use precompiled libraries. This will be changed in a later version.');
-  }
-  else if(command=="--prebuilt"){
+    print(
+        'Attention: In current version of whisper4dart, even though you have set it to use source code compilation, the Android iOS and MacOS platform will still automatically use precompiled libraries. This will be changed in a later version.');
+  } else if (command == "--prebuilt") {
     setupPrebuilt();
   }
-
 }
