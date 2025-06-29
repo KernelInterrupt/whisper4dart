@@ -5,7 +5,6 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
-import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as path;
 import 'package:libmpv_dart/gen/bindings.dart';
 import 'package:libmpv_dart/libmpv.dart' as mpv;
@@ -15,7 +14,6 @@ import 'package:whisper4dart/library.dart';
 import 'package:whisper4dart/other.dart';
 import 'whisper4dart_bindings_generated.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 import 'package:json_annotation/json_annotation.dart';
 part 'whisper.g.dart';
 
@@ -42,10 +40,8 @@ class Whisper {
   Pointer<whisper_context> ctx = nullptr;
   SendPort? _isolateSendPort;
   int get handle => ctx.address;
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  ValueNotifier<String> result = ValueNotifier("");
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  ValueNotifier<int> progress = ValueNotifier(0);
+  String result = "";
+  int progress = 0;
   int nNew = 0;
   String outputMode;
   int lastNSegments = 0;
@@ -95,21 +91,13 @@ class Whisper {
   Map<String, dynamic> toJson() => _$WhisperToJson(this);
 
   Whisper(this.model, this.cparams,
-      {this.outputMode = "plaintext",
-      this.initMode = "late",
-      ValueNotifier<String>? externalResultNotifier,ValueNotifier<int>? externalProgressNotifier}) {
+      {this.outputMode = "plaintext", this.initMode = "late"}) {
     if (!WhisperLibrary.loaded) {
       if (!WhisperLibrary.flagFirst) {
         WhisperLibrary.init();
       } else {
         throw Exception('libwhisper is not loaded!');
       }
-    }
-    if (externalResultNotifier != null) {
-      result = externalResultNotifier;
-    }
-    if (externalProgressNotifier != null) {
-      progress = externalProgressNotifier;
     }
     if (initMode == "normal") {
       initModel();
@@ -266,7 +254,7 @@ class Whisper {
     );
   }
 
-  (ValueNotifier<String>,ValueNotifier<int>) inferStream(String inputPath,
+  (String, int) inferStream(String inputPath,
       {String? logPath,
       int numProcessors = 1,
       String language = "auto",
@@ -280,22 +268,20 @@ class Whisper {
       throw Exception("JSON output is not supported for streaming yet");
     }
 
-    inferIsolate(
-      inputPath,
-      logPath: logPath,
-      numProcessors: numProcessors,
-      language: language,
-      translate: translate,
-      initialPrompt: initialPrompt,
-      strategy: strategy,
-      startTime: startTime,
-      endTime: endTime,
-      useOriginalTime: useOriginalTime,
-      newSegmentCallback: getSegmentCallback,
-      progressCallback: getProgressCallback
-    );
+    inferIsolate(inputPath,
+        logPath: logPath,
+        numProcessors: numProcessors,
+        language: language,
+        translate: translate,
+        initialPrompt: initialPrompt,
+        strategy: strategy,
+        startTime: startTime,
+        endTime: endTime,
+        useOriginalTime: useOriginalTime,
+        newSegmentCallback: getSegmentCallback,
+        progressCallback: getProgressCallback);
 
-    return (result,progress);
+    return (result, progress);
   }
 
   Future<String> inferIsolate(String inputPath,
@@ -329,13 +315,13 @@ class Whisper {
     if (newSegmentCallbackUserData != null) {
       wparams.new_segment_callback_user_data = newSegmentCallbackUserData;
     }
-    if(progressCallback != null){
+    if (progressCallback != null) {
       wparams.progress_callback = NativeCallable<
               Void Function(Pointer<whisper_context>, Pointer<whisper_state>,
                   Int, Pointer<Void>)>.listener(progressCallback)
           .nativeFunction;
     }
-    if(progressCallbackUserData != null){
+    if (progressCallbackUserData != null) {
       wparams.progress_callback_user_data = progressCallbackUserData;
     }
     if (initialPrompt != "") {
@@ -362,7 +348,6 @@ class Whisper {
       }
     }
 
-    var rootToken = RootIsolateToken.instance!;
     final ReceivePort resultReceivePort = ReceivePort();
     Map<String, dynamic> whisper2Json = toJson();
     _isolateSendPort?.send([
@@ -371,8 +356,7 @@ class Whisper {
       logPath,
       numProcessors,
       wparams,
-      resultReceivePort.sendPort,
-      rootToken
+      resultReceivePort.sendPort
     ]);
 
     return resultReceivePort.first.then((message) {
@@ -389,7 +373,7 @@ class Whisper {
     mainSendPort.send(isolateReceivePort.sendPort);
 
     isolateReceivePort.listen((message) async {
-      if (message is List && message.length == 7) {
+      if (message is List && message.length == 5) {
         final Map<String, dynamic> whisper2Json =
             message[0] as Map<String, dynamic>;
         final String inputPath = message[1] as String;
@@ -397,8 +381,6 @@ class Whisper {
         final int numProcessors = message[3] as int;
         final whisper_full_params wparams = message[4] as whisper_full_params;
         final SendPort resultSendPort = message[5] as SendPort;
-        final RootIsolateToken rootToken = message[6] as RootIsolateToken;
-        BackgroundIsolateBinaryMessenger.ensureInitialized(rootToken);
 
         try {
           final String subtitle = await _inferInIsolate(
@@ -506,19 +488,16 @@ class Whisper {
     int nSegments = WhisperLibrary.binding.whisper_full_n_segments(ctx);
 
     if (lastNSegments != nSegments) {
-      result.value += output(lastNSegments, nSegments, timeOffset: timeOffset);
+      result = output(lastNSegments, nSegments, timeOffset: timeOffset);
       lastNSegments = nSegments;
     }
   }
 
   void getProgressCallback(Pointer<whisper_context> ctx,
-    Pointer<whisper_state> state, int progress, Pointer<Void> userData) {
- 
-  this.progress.value = progress;
+      Pointer<whisper_state> state, int progress, Pointer<Void> userData) {
+    this.progress = progress;
+  }
 }
-}
-
-
 
 void cvt2PCM(String inputPath, String outputPath, {String? logPath}) {
   Map<String, String> option;
@@ -626,7 +605,6 @@ Pointer<Uint8> allocateUint8Pointer(List<int> list) {
 
   return memory;
 }
-
 
 // void newSegmentCallback(Pointer<whisper_context> ctx, Pointer<whisper_state> state,int nNew,Pointer<Void> userData){
 //   var whisperModel=Whisper.useCtx(ctx);
