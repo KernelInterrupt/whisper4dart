@@ -3,10 +3,10 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  libmpv_dart
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
-  libmpv_dart
   whisper4dart
 )
 
