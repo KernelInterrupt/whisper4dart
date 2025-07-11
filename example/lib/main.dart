@@ -1,11 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'dart:async';
-import 'package:path/path.dart' as path;
-import 'package:whisper4dart/whisper4dart.dart' as whisper;
-import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:whisper4dart/whisper4dart.dart' as whisper;
 
 void main() {
   runApp(const MyApp());
@@ -29,7 +29,8 @@ Future<String> inference(String inputPath) async {
       logPath: logPath, numProcessors: 1, startTime: 3000);
 }
 
-Future<(ValueNotifier<String>,ValueNotifier<int>)> inferenceStream(String inputPath) async {
+Future<(ValueNotifier<String>, ValueNotifier<int>)> inferenceStream(
+    String inputPath) async {
   final Directory tempDirectory = await getTemporaryDirectory();
 // final ByteData documentBytes = await rootBundle.load(inputPath);
 
@@ -89,7 +90,8 @@ class _MyAppState extends State<MyApp> {
                     child: const Text("Do inference at once")),
                 ElevatedButton(
                   onPressed: () async {
-                    var (resultNotifier,progressMotifier) = await inferenceStream("assets/test.m4a");
+                    var (resultNotifier, progressMotifier) =
+                        await inferenceStream("assets/test.m4a");
                     setState(() {
                       _textNotifier = resultNotifier;
                       _progressNotifier = progressMotifier;
@@ -100,12 +102,12 @@ class _MyAppState extends State<MyApp> {
                   child: const Text("Do inference progressively"),
                 ),
                 spacerSmall,
-                 ValueListenableBuilder<int>(
-              valueListenable: _progressNotifier,
-              builder: (context, value, child) {
-                return Text("progress: $value %");
-              },
-            ),
+                ValueListenableBuilder<int>(
+                  valueListenable: _progressNotifier,
+                  builder: (context, value, child) {
+                    return Text("progress: $value %");
+                  },
+                ),
                 ValueListenableBuilder<String>(
                   valueListenable: _textNotifier,
                   builder: (context, value, child) {

@@ -3,20 +3,20 @@ import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:typed_data';
+
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path/path.dart' as path;
-import 'package:libmpv_dart/gen/bindings.dart';
-import 'package:libmpv_dart/libmpv.dart' as mpv;
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
-import 'package:whisper4dart/library.dart';
-import 'package:whisper4dart/other.dart';
-import 'whisper4dart_bindings_generated.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:libmpv_dart/gen/bindings.dart';
+import 'package:libmpv_dart/libmpv.dart' as mpv;
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
+import 'package:whisper4dart/library.dart';
+import 'package:whisper4dart/other.dart';
+
+import 'whisper4dart_bindings_generated.dart';
+
 part 'whisper.g.dart';
 
 /// A very short-lived native function.
@@ -97,7 +97,8 @@ class Whisper {
   Whisper(this.model, this.cparams,
       {this.outputMode = "plaintext",
       this.initMode = "late",
-      ValueNotifier<String>? externalResultNotifier,ValueNotifier<int>? externalProgressNotifier}) {
+      ValueNotifier<String>? externalResultNotifier,
+      ValueNotifier<int>? externalProgressNotifier}) {
     if (!WhisperLibrary.loaded) {
       if (!WhisperLibrary.flagFirst) {
         WhisperLibrary.init();
@@ -266,7 +267,7 @@ class Whisper {
     );
   }
 
-  (ValueNotifier<String>,ValueNotifier<int>) inferStream(String inputPath,
+  (ValueNotifier<String>, ValueNotifier<int>) inferStream(String inputPath,
       {String? logPath,
       int numProcessors = 1,
       String language = "auto",
@@ -280,22 +281,20 @@ class Whisper {
       throw Exception("JSON output is not supported for streaming yet");
     }
 
-    inferIsolate(
-      inputPath,
-      logPath: logPath,
-      numProcessors: numProcessors,
-      language: language,
-      translate: translate,
-      initialPrompt: initialPrompt,
-      strategy: strategy,
-      startTime: startTime,
-      endTime: endTime,
-      useOriginalTime: useOriginalTime,
-      newSegmentCallback: getSegmentCallback,
-      progressCallback: getProgressCallback
-    );
+    inferIsolate(inputPath,
+        logPath: logPath,
+        numProcessors: numProcessors,
+        language: language,
+        translate: translate,
+        initialPrompt: initialPrompt,
+        strategy: strategy,
+        startTime: startTime,
+        endTime: endTime,
+        useOriginalTime: useOriginalTime,
+        newSegmentCallback: getSegmentCallback,
+        progressCallback: getProgressCallback);
 
-    return (result,progress);
+    return (result, progress);
   }
 
   Future<String> inferIsolate(String inputPath,
@@ -329,13 +328,13 @@ class Whisper {
     if (newSegmentCallbackUserData != null) {
       wparams.new_segment_callback_user_data = newSegmentCallbackUserData;
     }
-    if(progressCallback != null){
+    if (progressCallback != null) {
       wparams.progress_callback = NativeCallable<
               Void Function(Pointer<whisper_context>, Pointer<whisper_state>,
                   Int, Pointer<Void>)>.listener(progressCallback)
           .nativeFunction;
     }
-    if(progressCallbackUserData != null){
+    if (progressCallbackUserData != null) {
       wparams.progress_callback_user_data = progressCallbackUserData;
     }
     if (initialPrompt != "") {
@@ -358,7 +357,7 @@ class Whisper {
 
       await Isolate.spawn(_startInferIsolate, isolateReceivePort.sendPort);
       while (!isolateStarted) {
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
       }
     }
 
@@ -512,13 +511,10 @@ class Whisper {
   }
 
   void getProgressCallback(Pointer<whisper_context> ctx,
-    Pointer<whisper_state> state, int progress, Pointer<Void> userData) {
- 
-  this.progress.value = progress;
+      Pointer<whisper_state> state, int progress, Pointer<Void> userData) {
+    this.progress.value = progress;
+  }
 }
-}
-
-
 
 void cvt2PCM(String inputPath, String outputPath, {String? logPath}) {
   Map<String, String> option;
@@ -626,7 +622,6 @@ Pointer<Uint8> allocateUint8Pointer(List<int> list) {
 
   return memory;
 }
-
 
 // void newSegmentCallback(Pointer<whisper_context> ctx, Pointer<whisper_state> state,int nNew,Pointer<Void> userData){
 //   var whisperModel=Whisper.useCtx(ctx);
