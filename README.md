@@ -27,7 +27,7 @@ or add following line to your `pubspec.yaml`:
 After that,run following command in your terminal:
 
 ```
-dart rum libmpv_dart:setup --platform <your-platform>
+dart run libmpv_dart:setup --platform <your-platform>
 ```
 
 (For example,you need to run:`dart run libmpv_dart:setup --platform windows` if you want to setup for windows.)
