@@ -1,16 +1,13 @@
-import 'dart:async';
-import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:typed_data';
-import 'package:ffi/ffi.dart';
+
 import 'package:flutter/foundation.dart';
+
 import 'whisper4dart_bindings_generated.dart';
 
 class WhisperLibrary {
   static late WhisperDartBindings binding;
-  static String _libName = 'whisper';
+  static const String _libName = 'whisper';
   static bool flagFirst = false;
   static bool loaded = false;
   static void init() {
@@ -30,7 +27,7 @@ class WhisperLibrary {
       }();
 
       /// The bindings to the native functions in [_dylib].
-      WhisperLibrary.binding=WhisperDartBindings( _dylib);
+      WhisperLibrary.binding = WhisperDartBindings(_dylib);
       loaded = true;
       flagFirst = true;
     } catch (e) {
