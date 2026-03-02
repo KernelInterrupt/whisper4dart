@@ -1,6 +1,6 @@
 name: whisper4dart
 description: "A Dart wrapper for whisper.cpp"
-version: 0.1.4
+version: 0.1.5
 repository: https://github.com/KernelInterrupt/whisper4dart
 
 environment:
