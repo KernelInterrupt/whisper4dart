@@ -1,5 +1,5 @@
 src/whisper.cpp/*
 prebuilt/*
-macos/whisper.xcframwork/*
-ios/whisper.xcframwork/*
+macos/whisper.xcframework/*
+ios/whisper.xcframework/*
 example/assets
